@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace LINQ_Examples
 {
@@ -104,13 +105,9 @@ namespace LINQ_Examples
 
             Program p = new Program();
             //p.ShowExchangePricesAboveThousand();
-            //Console.ReadKey();
             //p.DrillCustomers();
-            //Console.ReadKey();
             //p.ShowNames();
-            //Console.ReadKey();
-            //p.Compound();
-            //Console.ReadKey();
+            p.Compound();
             //p.TakeThreeCustomers();
             //p.TakeThreeFromOregon();
             //p.OrderCustomersByFirstNameOrLength();
@@ -119,7 +116,7 @@ namespace LINQ_Examples
             //p.GroupCustomersByFirstLetter();
             //p.GroupCustomersByState();
             //p.ShowCustomersWithDifferingLettersinFirstAndLastName();
-            p.TryOutAnyStatement();
+            //p.TryOutAnyStatement();
             Console.ReadKey();
         }
 
@@ -189,59 +186,119 @@ namespace LINQ_Examples
 
         public void ShowExchangePricesAboveThousand()
         {
-            IEnumerable<double> exchangeQuery =
-                from e in ExchangedPrices
-                where e < 1000
-                select e;
-           
-            foreach (var item in exchangeQuery)
+            IEnumerable<double> exchangeQuery = ExchangedPrices;
+
+            foreach (double item in exchangeQuery)
             {
-                Console.WriteLine(item);
+                if (item < 1000)
+                {
+                    Console.WriteLine(item);
+                }
             }
+            //IEnumerable<double> exchangeQuery =
+            //    from e in ExchangedPrices
+            //    where e < 1000
+            //    select e;
+           
+            //foreach (var item in exchangeQuery)
+            //{
+            //    Console.WriteLine(item);
+            //}
             
         }
 
         public void DrillCustomers()
         {
-            IEnumerable<Customer> stateQuery =
-               from c in customers
-               where c.State == "GA"
-               select c;
-
-            foreach (var item in stateQuery)
+            foreach (var item in customers)
             {
-                Console.WriteLine(item.Last + ", " + item.Last + ":");
-                foreach (var purchase in item.Purchases)
+                if (item.State ==  "GA")
                 {
-                    Console.WriteLine(purchase);
+                    foreach (var purchase in item.Purchases)
+                    {
+                        Console.WriteLine(purchase);
+                    }
+                        
                 }
+            }
+            //IEnumerable<Customer> stateQuery =
+            //   from c in customers
+            //   where c.State == "GA"
+            //   select c;
+
+            //foreach (var item in stateQuery)
+            //{
+            //    Console.WriteLine(item.Last + ", " + item.Last + ":");
+            //    foreach (var purchase in item.Purchases)
+            //    {
+            //        Console.WriteLine(purchase);
+            //    }
                
                 
-            }
+            //}
         }
 
  
         public void ShowNames()
         {
-                var names =
-                from c in customers
-                //where c.State == "OR"
-                select new { lastFirst = c.Last + ", " + c.First};
-
-
-            foreach (var item in names)
+            foreach (var item in customers)
             {
-                Console.WriteLine(item.lastFirst);
+                Console.WriteLine($"{item.Last} , {item.First}");
             }
+            //    var names =
+            //    from c in customers
+            //    //where c.State == "OR"
+            //    select new { lastFirst = c.Last + ", " + c.First};
+
+
+            //foreach (var item in names)
+            //{
+            //    Console.WriteLine(item.lastFirst);
+            //}
         }
 
         public void Compound()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            var cdPairs = new Dictionary<Customer, IList<Distributor>>();
+
+            foreach (Customer item in customers)
+            {
+                IList<Distributor> dists = new List<Distributor>();
+                foreach (Distributor distrib in distributors)
+                {
+                    if (item.State == distrib.State)
+                    {
+                        dists.Add(distrib);
+                    }
+                }
+                cdPairs.Add(item, dists);
+            }
+
+            foreach (var item in cdPairs)
+            {
+                foreach (var d in item.Value)
+                {
+                    Console.WriteLine($"{item.Key.First} {item.Key.Last} {item.Key.State}");
+                    Console.WriteLine($"{d.Name} {d.State}");
+                    Console.WriteLine();
+                }
+            }
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedMilliseconds);
+            
+
+            Console.WriteLine("********************************************");
+
+            sw.Reset();
+
+            sw.Start();
             var compound =
                 from c in customers
                 from d in distributors
                 where c.State == d.State
-                select new { c,d };
+                select new { c, d };
 
             foreach (var item in compound)
             {
@@ -249,11 +306,20 @@ namespace LINQ_Examples
                 Console.WriteLine(item.d.Name + " " + item.d.State);
                 Console.WriteLine();
             }
+            sw.Stop();
 
+            Console.WriteLine(sw.ElapsedMilliseconds);
         }
+        
 
         public void TakeThreeCustomers()
         {
+            for (int i = 0; i < 3; i++)
+            {
+                Console.WriteLine(customers[i].First);
+            }
+
+            Console.WriteLine("*******************************");
             var cust = customers.Take(3);
 
             foreach (var item in cust)
@@ -261,9 +327,23 @@ namespace LINQ_Examples
                 Console.WriteLine(item.First);
             }
         }
-
+    
         public void TakeThreeFromOregon()
         {
+            int counter = 1;
+
+            for (int i = 0; i < customers.Count; i++) 
+            {
+                if (counter <= 3 && customers[i].State == "OR" )
+                {
+                    Console.WriteLine(customers[i].First);
+                    counter++;
+                    
+                }
+            }
+
+            Console.WriteLine("*********************************");
+
             var cust = customers.Where(x => x.State == "OR").Take(3);
             foreach (var item in cust)
             {
